@@ -200,6 +200,7 @@ if 'current_item' in st.session_state and st.session_state['current_item']:
             # Append to master data
             new_row_df = pd.DataFrame(edited_df)
             st.session_state.master_data = pd.concat([st.session_state.master_data, new_row_df], ignore_index=True)
+            st.session_state.master_data.index = st.session_state.master_data.index + 1
             
             # Save to excel file
             st.session_state.master_data.to_excel(PREDICTIONS_FILE, index=False, engine='openpyxl')
@@ -221,6 +222,7 @@ def delete_confirmation_dialog(indices_to_delete):
     col1, col2 = st.columns(2)
     if col1.button("✅ Yes, Delete", type="primary", use_container_width=True):
         st.session_state.master_data = st.session_state.master_data.drop(indices_to_delete).reset_index(drop=True)
+        st.session_state.master_data.index = st.session_state.master_data.index + 1
         st.session_state.master_data.to_excel(PREDICTIONS_FILE, index=False, engine='openpyxl')
         if "master_editor" in st.session_state:
             del st.session_state["master_editor"]

@@ -148,7 +148,7 @@ if files and st.button("Extract Data for Recent Product", type="primary", use_co
 
             st.session_state['current_item'] = [validated_data]
         except Exception as e:
-            st.error(f"Failed to extract data: {e}")
+            st.error("Model is busy, try again.")
 
 if 'current_item' in st.session_state and st.session_state['current_item']:
     st.divider()

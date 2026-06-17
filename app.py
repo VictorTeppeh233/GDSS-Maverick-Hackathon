@@ -59,10 +59,30 @@ st.markdown("""
     /* Hide Streamlit footer */
     footer {visibility: hidden;}
     
+    /* Thicker scrollbar for all browsers */
+    * {
+        scrollbar-width: auto !important;
+        scrollbar-color: #8A2BE2 #0E1117 !important;
+    }
+    
+    *::-webkit-scrollbar {
+        width: 30px !important;
+        height: 30px !important;
+    }
+    *::-webkit-scrollbar-track {
+        background: #0E1117 !important;
+    }
+    *::-webkit-scrollbar-thumb {
+        background: #8A2BE2 !important;
+        border-radius: 15px !important;
+    }
+    *::-webkit-scrollbar-thumb:hover {
+        background: #4169E1 !important;
+    }
+    
     /* Data Editor Radius */
     [data-testid="stDataFrame"] {
         border-radius: 12px;
-        overflow: hidden;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -172,7 +192,7 @@ if 'current_item' in st.session_state and st.session_state['current_item']:
     
     df_current = pd.DataFrame(st.session_state['current_item'])
     df_current.index = df_current.index + 1
-    edited_df = st.data_editor(df_current, num_rows="dynamic", use_container_width=True, key=f"editor_{st.session_state.uploader_key}")
+    edited_df = st.data_editor(df_current, num_rows="fixed", use_container_width=True, key=f"editor_{st.session_state.uploader_key}")
     
     col1, col2 = st.columns(2)
     with col1:
@@ -195,12 +215,41 @@ if 'current_item' in st.session_state and st.session_state['current_item']:
             st.session_state.uploader_key += 1
             st.rerun()
 
+@st.dialog("Confirm Deletion")
+def delete_confirmation_dialog(indices_to_delete):
+    st.warning("Are you sure you want to delete the selected row(s)? This action cannot be undone.")
+    col1, col2 = st.columns(2)
+    if col1.button("✅ Yes, Delete", type="primary", use_container_width=True):
+        st.session_state.master_data = st.session_state.master_data.drop(indices_to_delete).reset_index(drop=True)
+        st.session_state.master_data.to_excel(PREDICTIONS_FILE, index=False, engine='openpyxl')
+        if "master_editor" in st.session_state:
+            del st.session_state["master_editor"]
+        st.rerun()
+    if col2.button("❌ Cancel", use_container_width=True):
+        if "master_editor" in st.session_state:
+            del st.session_state["master_editor"]
+        st.rerun()
+
 st.divider()
 st.subheader("Master Data (predictions.xlsx)")
 if not st.session_state.master_data.empty:
     display_df = st.session_state.master_data.copy()
-    display_df.index = display_df.index + 1
-    st.dataframe(display_df, use_container_width=True)
+    display_df["Delete ❌"] = False
+    
+    # Make master data editable, but fixed rows (removes plus icon)
+    edited_master = st.data_editor(display_df, num_rows="fixed", use_container_width=True, height=600, key="master_editor")
+    
+    indices_to_delete = edited_master[edited_master["Delete ❌"] == True].index.tolist()
+    
+    if indices_to_delete:
+        delete_confirmation_dialog(indices_to_delete)
+    else:
+        # Check if the dataframe has been changed by the user (excluding the delete column)
+        edited_master_clean = edited_master.drop(columns=["Delete ❌"])
+        if not edited_master_clean.equals(st.session_state.master_data):
+            st.session_state.master_data = edited_master_clean.copy()
+            st.session_state.master_data.to_excel(PREDICTIONS_FILE, index=False, engine='openpyxl')
+            st.rerun()
     
     if os.path.exists(PREDICTIONS_FILE):
         with open(PREDICTIONS_FILE, "rb") as file:

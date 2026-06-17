@@ -209,6 +209,11 @@ if 'current_item' in st.session_state and st.session_state['current_item']:
             st.session_state['current_item'] = []
             st.session_state.uploader_key += 1
             st.success("Item saved to predictions.xlsx successfully!")
+            
+            # Clear data editor state so it can rebuild with new row
+            if "master_editor" in st.session_state:
+                del st.session_state["master_editor"]
+            
             st.rerun()
     with col2:
         if st.button("❌ Discard Extraction", use_container_width=True):

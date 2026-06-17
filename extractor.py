@@ -78,11 +78,9 @@ def extract_product_data(images):
         client = genai.Client(api_key=api_key)
         
         models_to_try = [
-            'gemini-2.5-flash', 
-            'gemini-2.0-flash', 
-            'gemini-1.5-flash-latest', 
-            'gemini-1.5-pro', 
-            'gemini-pro-vision'
+            'gemini-2.5-flash',
+            'gemini-1.5-flash', 
+            'gemini-1.5-pro'
         ]
         
         response = None

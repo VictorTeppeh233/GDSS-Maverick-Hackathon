@@ -20,14 +20,8 @@ if "GEMINI_API_KEY" not in os.environ and hasattr(st, "secrets") and "GEMINI_API
 # Master Data Initialization
 PREDICTIONS_FILE = "predictions.xlsx"
 
-def load_master_data():
-    if os.path.exists(PREDICTIONS_FILE):
-        return pd.read_excel(PREDICTIONS_FILE)
-    else:
-        return pd.DataFrame()
-
 if 'master_data' not in st.session_state:
-    st.session_state.master_data = load_master_data()
+    st.session_state.master_data = pd.DataFrame()
 
 if 'uploader_key' not in st.session_state:
     st.session_state.uploader_key = 0
